@@ -41,7 +41,7 @@ def main():
         st.write(data.isnull().sum())
         
         st.write("Basic statistical summary:")
-        st.write(data.describe())
+        st.write(data.describe(include='all'))
         
         # Part II: Data Pre-processing and Cleaning
         st.header("Part II: Data Pre-processing and Cleaning")
@@ -51,29 +51,42 @@ def main():
         missing_values_option = st.selectbox(
             "Choose a method to handle missing values",
             ("Delete rows with missing values", "Delete columns with missing values",
-             "Replace with mean", "Replace with median", "Replace with mode",
-             "KNN Imputation", "Simple Imputation")
+             "Replace with mean (numeric only)", "Replace with median (numeric only)", 
+             "Replace with mode", "KNN Imputation (numeric only)", "Simple Imputation (constant value)")
         )
+
+        data_cleaned = data.copy()
 
         if missing_values_option == "Delete rows with missing values":
             data_cleaned = data.dropna()
+            st.write("Deleted rows with missing values. Remaining data shape:", data_cleaned.shape)
         elif missing_values_option == "Delete columns with missing values":
             data_cleaned = data.dropna(axis=1)
-        elif missing_values_option == "Replace with mean":
+            st.write("Deleted columns with missing values. Remaining data shape:", data_cleaned.shape)
+        elif missing_values_option == "Replace with mean (numeric only)":
+            num_cols = data.select_dtypes(include=['number']).columns
             imputer = SimpleImputer(strategy='mean')
-            data_cleaned = pd.DataFrame(imputer.fit_transform(data), columns=data.columns)
-        elif missing_values_option == "Replace with median":
+            data_cleaned[num_cols] = imputer.fit_transform(data[num_cols])
+            st.write("Replaced missing values with the mean of each numeric column.")
+        elif missing_values_option == "Replace with median (numeric only)":
+            num_cols = data.select_dtypes(include=['number']).columns
             imputer = SimpleImputer(strategy='median')
-            data_cleaned = pd.DataFrame(imputer.fit_transform(data), columns=data.columns)
+            data_cleaned[num_cols] = imputer.fit_transform(data[num_cols])
+            st.write("Replaced missing values with the median of each numeric column.")
         elif missing_values_option == "Replace with mode":
             imputer = SimpleImputer(strategy='most_frequent')
             data_cleaned = pd.DataFrame(imputer.fit_transform(data), columns=data.columns)
-        elif missing_values_option == "KNN Imputation":
+            st.write("Replaced missing values with the mode of each column.")
+        elif missing_values_option == "KNN Imputation (numeric only)":
+            num_cols = data.select_dtypes(include=['number']).columns
             imputer = KNNImputer(n_neighbors=5)
+            data_cleaned[num_cols] = imputer.fit_transform(data[num_cols])
+            st.write("Replaced missing values using KNN imputation for numeric columns.")
+        elif missing_values_option == "Simple Imputation (constant value)":
+            fill_value = st.text_input("Enter the constant value to replace missing values with", value="0")
+            imputer = SimpleImputer(strategy='constant', fill_value=fill_value)
             data_cleaned = pd.DataFrame(imputer.fit_transform(data), columns=data.columns)
-        elif missing_values_option == "Simple Imputation":
-            imputer = SimpleImputer(strategy='constant', fill_value=0)
-            data_cleaned = pd.DataFrame(imputer.fit_transform(data), columns=data.columns)
+            st.write(f"Replaced missing values with the constant value: {fill_value}.")
         
         st.write("Data after handling missing values:")
         st.write(data_cleaned.head())
