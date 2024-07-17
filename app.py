@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from sklearn.impute import SimpleImputer, KNNImputer
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, QuantileTransformer, RobustScaler
 
 def main():
     st.title("Data Mining Project")
@@ -48,7 +48,7 @@ def main():
         st.header("Part II: Data Pre-processing and Cleaning")
         
         # Handling missing values
-        st.subheader("Handling Missing Values")
+        st.subheader(" 1. Handling Missing Values")
         missing_values_option = st.selectbox(
             "Choose a method to handle missing values",
             ("Delete rows with missing values", "Delete columns with missing values",
@@ -93,12 +93,10 @@ def main():
         st.write(data_cleaned.head())
 
         # Part III: Data Normalization
-        st.header("Part III: Data Normalization")
-
-        st.subheader("Choose a method to normalize the data")
+        st.subheader(" 2. Choose a method to normalize the data")
         normalization_option = st.selectbox(
             "Normalization method",
-            ("None", "Min-Max Normalization", "Z-score Standardization")
+            ("None", "Min-Max Normalization", "Z-score Standardization", "Quantile Transformation", "Robust Scaler")
         )
 
         if normalization_option == "Min-Max Normalization":
@@ -109,6 +107,14 @@ def main():
             scaler = StandardScaler()
             data_cleaned[data_cleaned.select_dtypes(include=['number']).columns] = scaler.fit_transform(data_cleaned.select_dtypes(include=['number']))
             st.write("Applied Z-score Standardization to numeric columns.")
+        elif normalization_option == "Quantile Transformation":
+            scaler = QuantileTransformer(output_distribution='normal')
+            data_cleaned[data_cleaned.select_dtypes(include=['number']).columns] = scaler.fit_transform(data_cleaned.select_dtypes(include=['number']))
+            st.write("Applied Quantile Transformation to numeric columns.")
+        elif normalization_option == "Robust Scaler":
+            scaler = RobustScaler()
+            data_cleaned[data_cleaned.select_dtypes(include=['number']).columns] = scaler.fit_transform(data_cleaned.select_dtypes(include=['number']))
+            st.write("Applied Robust Scaler to numeric columns.")
         
         st.write("Data after normalization:")
         st.write(data_cleaned.head())
