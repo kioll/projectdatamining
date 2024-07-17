@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from sklearn.impute import SimpleImputer, KNNImputer
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, QuantileTransformer, RobustScaler
+import matplotlib.pyplot as plt
 
 def main():
     st.title("Data Mining Project")
@@ -99,25 +100,57 @@ def main():
             ("None", "Min-Max Normalization", "Z-score Standardization", "Quantile Transformation", "Robust Scaler")
         )
 
-        if normalization_option == "Min-Max Normalization":
-            scaler = MinMaxScaler()
-            data_cleaned[data_cleaned.select_dtypes(include=['number']).columns] = scaler.fit_transform(data_cleaned.select_dtypes(include=['number']))
-            st.write("Applied Min-Max Normalization to numeric columns.")
-        elif normalization_option == "Z-score Standardization":
-            scaler = StandardScaler()
-            data_cleaned[data_cleaned.select_dtypes(include=['number']).columns] = scaler.fit_transform(data_cleaned.select_dtypes(include=['number']))
-            st.write("Applied Z-score Standardization to numeric columns.")
-        elif normalization_option == "Quantile Transformation":
-            scaler = QuantileTransformer(output_distribution='normal')
-            data_cleaned[data_cleaned.select_dtypes(include=['number']).columns] = scaler.fit_transform(data_cleaned.select_dtypes(include=['number']))
-            st.write("Applied Quantile Transformation to numeric columns.")
-        elif normalization_option == "Robust Scaler":
-            scaler = RobustScaler()
-            data_cleaned[data_cleaned.select_dtypes(include=['number']).columns] = scaler.fit_transform(data_cleaned.select_dtypes(include=['number']))
-            st.write("Applied Robust Scaler to numeric columns.")
+        if normalization_option != "None":
+            num_cols = data_cleaned.select_dtypes(include=['number']).columns
+            data_cleaned_numeric = data_cleaned[num_cols]
+            
+            if normalization_option == "Min-Max Normalization":
+                scaler = MinMaxScaler()
+                data_cleaned[num_cols] = scaler.fit_transform(data_cleaned_numeric)
+                st.write("Applied Min-Max Normalization to numeric columns.")
+            elif normalization_option == "Z-score Standardization":
+                scaler = StandardScaler()
+                data_cleaned[num_cols] = scaler.fit_transform(data_cleaned_numeric)
+                st.write("Applied Z-score Standardization to numeric columns.")
+            elif normalization_option == "Quantile Transformation":
+                scaler = QuantileTransformer(output_distribution='normal')
+                data_cleaned[num_cols] = scaler.fit_transform(data_cleaned_numeric)
+                st.write("Applied Quantile Transformation to numeric columns.")
+            elif normalization_option == "Robust Scaler":
+                scaler = RobustScaler()
+                data_cleaned[num_cols] = scaler.fit_transform(data_cleaned_numeric)
+                st.write("Applied Robust Scaler to numeric columns.")
         
         st.write("Data after normalization:")
         st.write(data_cleaned.head())
+
+        # Part III: Data Visualization
+        st.header("Part III: Visualization of the cleaned data")
+        
+        # Choose a column for visualization
+        column_to_visualize = st.selectbox("Choose a column to visualize", data_cleaned.columns)
+        
+        # Check if the selected column is numeric
+        if pd.api.types.is_numeric_dtype(data_cleaned[column_to_visualize]):
+            # Histogram
+            st.subheader("Histogram")
+            fig, ax = plt.subplots()
+            ax.hist(data_cleaned[column_to_visualize].dropna(), bins=30, edgecolor='k')
+            ax.set_title(f'Histogram of {column_to_visualize}')
+            ax.set_xlabel(column_to_visualize)
+            ax.set_ylabel('Frequency')
+            st.pyplot(fig)
+            
+            # Box plot
+            st.subheader("Box Plot")
+            fig, ax = plt.subplots()
+            ax.boxplot(data_cleaned[column_to_visualize].dropna())
+            ax.set_title(f'Box Plot of {column_to_visualize}')
+            ax.set_xlabel(column_to_visualize)
+            ax.set_ylabel('Value')
+            st.pyplot(fig)
+        else:
+            st.write(f"The selected column '{column_to_visualize}' is not numeric and cannot be visualized using histograms or box plots.")
 
 if __name__ == "__main__":
     main()
