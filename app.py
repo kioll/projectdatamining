@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from sklearn.impute import SimpleImputer, KNNImputer
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 def main():
     st.title("Data Mining Project")
@@ -89,6 +90,27 @@ def main():
             st.write(f"Replaced missing values with the constant value: {fill_value}.")
         
         st.write("Data after handling missing values:")
+        st.write(data_cleaned.head())
+
+        # Part III: Data Normalization
+        st.header("Part III: Data Normalization")
+
+        st.subheader("Choose a method to normalize the data")
+        normalization_option = st.selectbox(
+            "Normalization method",
+            ("None", "Min-Max Normalization", "Z-score Standardization")
+        )
+
+        if normalization_option == "Min-Max Normalization":
+            scaler = MinMaxScaler()
+            data_cleaned[data_cleaned.select_dtypes(include=['number']).columns] = scaler.fit_transform(data_cleaned.select_dtypes(include=['number']))
+            st.write("Applied Min-Max Normalization to numeric columns.")
+        elif normalization_option == "Z-score Standardization":
+            scaler = StandardScaler()
+            data_cleaned[data_cleaned.select_dtypes(include=['number']).columns] = scaler.fit_transform(data_cleaned.select_dtypes(include=['number']))
+            st.write("Applied Z-score Standardization to numeric columns.")
+        
+        st.write("Data after normalization:")
         st.write(data_cleaned.head())
 
 if __name__ == "__main__":
