@@ -1,8 +1,11 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.impute import SimpleImputer, KNNImputer
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, QuantileTransformer, RobustScaler
-import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans, DBSCAN
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestClassifier
 
 def main():
     st.title("Data Mining Project")
@@ -151,6 +154,56 @@ def main():
             st.pyplot(fig)
         else:
             st.write(f"The selected column '{column_to_visualize}' is not numeric and cannot be visualized using histograms or box plots.")
+
+        # Part IV: Clustering or Prediction
+        st.header("Part IV: Clustering or Prediction")
+
+        task = st.selectbox("Choose a task", ["Clustering", "Prediction"])
+
+        if task == "Clustering":
+            st.subheader("Clustering Algorithms")
+            clustering_algorithm = st.selectbox(
+                "Choose a clustering algorithm",
+                ("K-means", "DBSCAN")
+            )
+
+            if clustering_algorithm == "K-means":
+                n_clusters = st.slider("Select number of clusters", 2, 10, 3)
+                kmeans = KMeans(n_clusters=n_clusters)
+                data_cleaned['Cluster'] = kmeans.fit_predict(data_cleaned[num_cols])
+                st.write("Applied K-means clustering with the following number of clusters:", n_clusters)
+                st.write(data_cleaned.head())
+            elif clustering_algorithm == "DBSCAN":
+                eps = st.slider("Select epsilon value", 0.1, 10.0, 0.5)
+                min_samples = st.slider("Select minimum samples", 1, 10, 5)
+                dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+                data_cleaned['Cluster'] = dbscan.fit_predict(data_cleaned[num_cols])
+                st.write("Applied DBSCAN clustering with epsilon:", eps, "and minimum samples:", min_samples)
+                st.write(data_cleaned.head())
+
+        elif task == "Prediction":
+            st.subheader("Prediction Algorithms")
+            prediction_algorithm = st.selectbox(
+                "Choose a prediction algorithm",
+                ("Linear Regression", "Random Forest Classifier")
+            )
+
+            target_column = st.selectbox("Choose the target column", data_cleaned.columns)
+            
+            if pd.api.types.is_numeric_dtype(data_cleaned[target_column]):
+                X = data_cleaned.drop(columns=[target_column])
+                y = data_cleaned[target_column]
+
+                if prediction_algorithm == "Linear Regression":
+                    model = LinearRegression()
+                    model.fit(X, y)
+                    st.write("Fitted a Linear Regression model.")
+                elif prediction_algorithm == "Random Forest Classifier":
+                    model = RandomForestClassifier()
+                    model.fit(X, y)
+                    st.write("Fitted a Random Forest Classifier model.")
+
+                st.write("Model training completed.")
 
 if __name__ == "__main__":
     main()
