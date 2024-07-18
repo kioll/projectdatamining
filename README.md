@@ -68,10 +68,10 @@ streamlit run app.py
 
 ## Using the Application
 ## Part I: Initial Data Exploration
-Load Data: Upload your CSV file through the application interface.
-Data Description: View a preview of the first and last rows of the dataset, as well as a basic statistical summary.
+**Load Data:** Upload your CSV file through the application interface.
+**Data Description:** View a preview of the first and last rows of the dataset, as well as a basic statistical summary.
 ## Part II: Data Pre-processing and Cleaning
-Handling Missing Values: Choose a method to handle missing values from the following options:
+**Handling Missing Values:** Choose a method to handle missing values from the following options:
 
 Delete rows with missing values
 Delete columns with missing values
@@ -80,26 +80,27 @@ Replace with median (numeric columns only)
 Replace with mode
 KNN Imputation (numeric columns only)
 Simple Imputation with a constant value
-Data Normalization: Choose a method to normalize the data from the following options:
+**Data Normalization:** Choose a method to normalize the data from the following options:
 
 Min-Max Normalization
 Z-score Standardization
 Quantile Transformation
 Robust Scaler
 ## Part III: Visualization of the Cleaned Data
-Histograms: Visualize the distribution of data for each feature in the form of histograms.
+**Histograms:** Visualize the distribution of data for each feature in the form of histograms.
 Box Plots: Visualize the distribution and outliers of each feature using box plots.
 ## Part IV: Clustering or Prediction
-Clustering: Implement clustering algorithms:
+**Clustering:** Implement clustering algorithms:
 
 K-means
 DBSCAN
 Choose the desired algorithm and set its parameters.
-Prediction: Implement prediction algorithms:
+**Prediction:**  Implement prediction algorithms:
 
-Linear Regression
-Random Forest Classifier
-Choose the desired algorithm and set its parameters.
-Select the target column for prediction.
+ - Linear Regression
+ - Random Forest Classifier
+ - Choose the desired algorithm and set its parameters.
+ - Select the target column for prediction.
+ 
 ## Conclusion
 This project provides an interactive web application for data analysis, cleaning, visualization, clustering, and prediction using Streamlit. Follow the steps above to set up and run the application on your local machine.
