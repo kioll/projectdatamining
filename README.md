@@ -28,7 +28,7 @@ The project is divided into four main parts:
 
 ## Running the Project
 ## Step 1: Clone the Repository
-## Clone the repository containing the project to your local machine:
+### Clone the repository containing the project to your local machine:
 
 ```bash
 git clone https://github.com/your-username/your-repo.git
@@ -37,7 +37,7 @@ cd your-repo
 ```
 
 ## Step 2: Create and Activate a Virtual Environment
-## Create a virtual environment and activate it:
+### Create a virtual environment and activate it:
 
 On macOS and Linux:
 
@@ -55,7 +55,7 @@ myenv\Scripts\activate
 ```
 
 ## Step 3: Install Dependencies
-## Install the necessary libraries:
+### Install the necessary libraries:
 
 ```bash
 pip install -r requirements.txt
