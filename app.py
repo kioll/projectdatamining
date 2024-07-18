@@ -6,6 +6,7 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler, QuantileTransfor
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import r2_score
 
 def main():
     st.title("Data Mining Project")
@@ -173,15 +174,48 @@ def main():
                 n_clusters = st.slider("Select number of clusters", 2, 10, 3)
                 kmeans = KMeans(n_clusters=n_clusters)
                 data_cleaned['Cluster'] = kmeans.fit_predict(data_cleaned[num_cols])
-                st.write("Applied K-means clustering with the following number of clusters:", n_clusters)
-                st.write(data_cleaned.head())
+                st.write(f"Applied K-means clustering with the following number of clusters: {n_clusters}")
+                
+                # Reorder columns to move 'Cluster' to the beginning
+                cluster_col = data_cleaned.pop('Cluster')
+                data_cleaned.insert(0, 'Cluster', cluster_col)
+                
+                st.write(data_cleaned)
+                
+                # Scatter plot of clusters
+                st.subheader("Cluster Scatter Plot")
+                fig, ax = plt.subplots()
+                scatter = ax.scatter(data_cleaned[num_cols[0]], data_cleaned[num_cols[1]], c=data_cleaned['Cluster'], cmap='viridis')
+                legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
+                ax.add_artist(legend1)
+                ax.set_xlabel(num_cols[0])
+                ax.set_ylabel(num_cols[1])
+                ax.set_title("Cluster Scatter Plot")
+                st.pyplot(fig)
+
             elif clustering_algorithm == "DBSCAN":
                 eps = st.slider("Select epsilon value", 0.1, 10.0, 0.5)
                 min_samples = st.slider("Select minimum samples", 1, 10, 5)
                 dbscan = DBSCAN(eps=eps, min_samples=min_samples)
                 data_cleaned['Cluster'] = dbscan.fit_predict(data_cleaned[num_cols])
-                st.write("Applied DBSCAN clustering with epsilon:", eps, "and minimum samples:", min_samples)
-                st.write(data_cleaned.head())
+                st.write(f"Applied DBSCAN clustering with epsilon: {eps} and minimum samples: {min_samples}")
+                
+                # Reorder columns to move 'Cluster' to the beginning
+                cluster_col = data_cleaned.pop('Cluster')
+                data_cleaned.insert(0, 'Cluster', cluster_col)
+                
+                st.write(data_cleaned)
+                
+                # Scatter plot of clusters
+                st.subheader("Cluster Scatter Plot")
+                fig, ax = plt.subplots()
+                scatter = ax.scatter(data_cleaned[num_cols[0]], data_cleaned[num_cols[1]], c=data_cleaned['Cluster'], cmap='viridis')
+                legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
+                ax.add_artist(legend1)
+                ax.set_xlabel(num_cols[0])
+                ax.set_ylabel(num_cols[1])
+                ax.set_title("Cluster Scatter Plot")
+                st.pyplot(fig)
 
         elif task == "Prediction":
             st.subheader("Prediction Algorithms")
@@ -200,12 +234,30 @@ def main():
                     model = LinearRegression()
                     model.fit(X, y)
                     st.write("Fitted a Linear Regression model.")
+                    predictions = model.predict(X)
                 elif prediction_algorithm == "Random Forest Classifier":
                     model = RandomForestClassifier()
                     model.fit(X, y)
                     st.write("Fitted a Random Forest Classifier model.")
+                    predictions = model.predict(X)
 
                 st.write("Model training completed.")
+
+                # Display predictions
+                st.subheader("Predictions")
+                predictions_df = pd.DataFrame({"Actual": y, "Predicted": predictions})
+                st.write(predictions_df.head())
+
+                # Scatter plot of actual vs predicted values
+                st.subheader("Actual vs Predicted")
+                r2 = r2_score(y, predictions)
+                fig, ax = plt.subplots()
+                ax.scatter(y, predictions, edgecolors=(0, 0, 0))
+                ax.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)
+                ax.set_xlabel("Actual")
+                ax.set_ylabel("Predicted")
+                ax.set_title(f"Actual vs Predicted ({prediction_algorithm})\nR² score: {r2:.2f}")
+                st.pyplot(fig)
             else:
                 st.write(f"The target column '{target_column}' is not numeric and cannot be used for regression.")
 
