@@ -23,9 +23,9 @@ Visualization of the Cleaned Data
 Clustering or Prediction
 
 
-Running the Project
-Step 1: Clone the Repository
-Clone the repository containing the project to your local machine:
+## Running the Project
+## Step 1: Clone the Repository
+## Clone the repository containing the project to your local machine:
 
 ```bash
 git clone https://github.com/your-username/your-repo.git
@@ -33,8 +33,8 @@ cd your-repo
 
 ```
 
-Step 2: Create and Activate a Virtual Environment
-Create a virtual environment and activate it:
+## Step 2: Create and Activate a Virtual Environment
+## Create a virtual environment and activate it:
 
 On macOS and Linux:
 
@@ -51,8 +51,8 @@ python -m venv myenv
 myenv\Scripts\activate
 ```
 
-Step 3: Install Dependencies
-Install the necessary libraries:
+## Step 3: Install Dependencies
+## Install the necessary libraries:
 
 ```bash
 pip install -r requirements.txt
@@ -66,11 +66,11 @@ streamlit run app.py
 
 ```
 
-Using the Application
-Part I: Initial Data Exploration
+## Using the Application
+## Part I: Initial Data Exploration
 Load Data: Upload your CSV file through the application interface.
 Data Description: View a preview of the first and last rows of the dataset, as well as a basic statistical summary.
-Part II: Data Pre-processing and Cleaning
+## Part II: Data Pre-processing and Cleaning
 Handling Missing Values: Choose a method to handle missing values from the following options:
 
 Delete rows with missing values
@@ -86,10 +86,10 @@ Min-Max Normalization
 Z-score Standardization
 Quantile Transformation
 Robust Scaler
-Part III: Visualization of the Cleaned Data
+## Part III: Visualization of the Cleaned Data
 Histograms: Visualize the distribution of data for each feature in the form of histograms.
 Box Plots: Visualize the distribution and outliers of each feature using box plots.
-Part IV: Clustering or Prediction
+## Part IV: Clustering or Prediction
 Clustering: Implement clustering algorithms:
 
 K-means
@@ -101,5 +101,5 @@ Linear Regression
 Random Forest Classifier
 Choose the desired algorithm and set its parameters.
 Select the target column for prediction.
-Conclusion
+## Conclusion
 This project provides an interactive web application for data analysis, cleaning, visualization, clustering, and prediction using Streamlit. Follow the steps above to set up and run the application on your local machine.
