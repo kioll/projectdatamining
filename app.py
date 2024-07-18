@@ -6,6 +6,7 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler, QuantileTransfor
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import r2_score
 
 def main():
     st.title("Data Mining Project")
@@ -200,12 +201,30 @@ def main():
                     model = LinearRegression()
                     model.fit(X, y)
                     st.write("Fitted a Linear Regression model.")
+                    predictions = model.predict(X)
                 elif prediction_algorithm == "Random Forest Classifier":
                     model = RandomForestClassifier()
                     model.fit(X, y)
                     st.write("Fitted a Random Forest Classifier model.")
+                    predictions = model.predict(X)
 
                 st.write("Model training completed.")
+
+                # Display predictions
+                st.subheader("Predictions")
+                predictions_df = pd.DataFrame({"Actual": y, "Predicted": predictions})
+                st.write(predictions_df.head())
+
+                # Scatter plot of actual vs predicted values
+                st.subheader("Actual vs Predicted")
+                r2 = r2_score(y, predictions)
+                fig, ax = plt.subplots()
+                ax.scatter(y, predictions, edgecolors=(0, 0, 0))
+                ax.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)
+                ax.set_xlabel("Actual")
+                ax.set_ylabel("Predicted")
+                ax.set_title(f"Actual vs Predicted ({prediction_algorithm})\nR² score: {r2:.2f}")
+                st.pyplot(fig)
             else:
                 st.write(f"The target column '{target_column}' is not numeric and cannot be used for regression.")
 
