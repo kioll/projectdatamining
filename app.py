@@ -160,6 +160,8 @@ def main():
 
         task = st.selectbox("Choose a task", ["Clustering", "Prediction"])
 
+        num_cols = data_cleaned.select_dtypes(include=['number']).columns
+
         if task == "Clustering":
             st.subheader("Clustering Algorithms")
             clustering_algorithm = st.selectbox(
@@ -191,7 +193,7 @@ def main():
             target_column = st.selectbox("Choose the target column", data_cleaned.columns)
             
             if pd.api.types.is_numeric_dtype(data_cleaned[target_column]):
-                X = data_cleaned.drop(columns=[target_column])
+                X = data_cleaned[num_cols].drop(columns=[target_column])
                 y = data_cleaned[target_column]
 
                 if prediction_algorithm == "Linear Regression":
@@ -204,6 +206,8 @@ def main():
                     st.write("Fitted a Random Forest Classifier model.")
 
                 st.write("Model training completed.")
+            else:
+                st.write(f"The target column '{target_column}' is not numeric and cannot be used for regression.")
 
 if __name__ == "__main__":
     main()
