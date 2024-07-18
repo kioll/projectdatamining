@@ -181,15 +181,19 @@ def main():
                 data_cleaned.insert(0, 'Cluster', cluster_col)
                 
                 st.write(data_cleaned)
+
+                # Select axes for scatter plot
+                x_axis = st.selectbox("Select X-axis for Scatter Plot", num_cols)
+                y_axis = st.selectbox("Select Y-axis for Scatter Plot", num_cols)
                 
                 # Scatter plot of clusters
                 st.subheader("Cluster Scatter Plot")
                 fig, ax = plt.subplots()
-                scatter = ax.scatter(data_cleaned[num_cols[0]], data_cleaned[num_cols[1]], c=data_cleaned['Cluster'], cmap='viridis')
+                scatter = ax.scatter(data_cleaned[x_axis], data_cleaned[y_axis], c=data_cleaned['Cluster'], cmap='viridis')
                 legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
                 ax.add_artist(legend1)
-                ax.set_xlabel(num_cols[0])
-                ax.set_ylabel(num_cols[1])
+                ax.set_xlabel(x_axis)
+                ax.set_ylabel(y_axis)
                 ax.set_title("Cluster Scatter Plot")
                 st.pyplot(fig)
 
@@ -206,14 +210,18 @@ def main():
                 
                 st.write(data_cleaned)
                 
+                # Select axes for scatter plot
+                x_axis = st.selectbox("Select X-axis for Scatter Plot", num_cols)
+                y_axis = st.selectbox("Select Y-axis for Scatter Plot", num_cols)
+                
                 # Scatter plot of clusters
                 st.subheader("Cluster Scatter Plot")
                 fig, ax = plt.subplots()
-                scatter = ax.scatter(data_cleaned[num_cols[0]], data_cleaned[num_cols[1]], c=data_cleaned['Cluster'], cmap='viridis')
+                scatter = ax.scatter(data_cleaned[x_axis], data_cleaned[y_axis], c=data_cleaned['Cluster'], cmap='viridis')
                 legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
                 ax.add_artist(legend1)
-                ax.set_xlabel(num_cols[0])
-                ax.set_ylabel(num_cols[1])
+                ax.set_xlabel(x_axis)
+                ax.set_ylabel(y_axis)
                 ax.set_title("Cluster Scatter Plot")
                 st.pyplot(fig)
 
