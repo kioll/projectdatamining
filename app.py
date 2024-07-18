@@ -6,7 +6,8 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler, QuantileTransfor
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+import io
 
 def main():
     st.title("Data Mining Project")
@@ -26,6 +27,16 @@ def main():
         
         # Chargement des données
         data = pd.read_csv(uploaded_file, delimiter=delimiter)
+        
+        # Définir num_cols après le chargement des données
+        num_cols = data.select_dtypes(include=['number']).columns
+        
+        # Filtrage et sélection des données
+        st.header("Data Filtering and Selection")
+        filter_col = st.selectbox("Select a column to filter", data.columns)
+        filter_value = st.text_input(f"Enter value to filter {filter_col}")
+        if filter_value:
+            data = data[data[filter_col].astype(str).str.contains(filter_value, na=False)]
         
         # Data description
         st.subheader("Data Preview")
@@ -124,6 +135,9 @@ def main():
                 scaler = RobustScaler()
                 data_cleaned[num_cols] = scaler.fit_transform(data_cleaned_numeric)
                 st.write("Applied Robust Scaler to numeric columns.")
+
+            # Redéfinir num_cols après la normalisation
+            num_cols = data_cleaned.select_dtypes(include=['number']).columns
         
         st.write("Data after normalization:")
         st.write(data_cleaned.head())
@@ -259,15 +273,22 @@ def main():
                 # Scatter plot of actual vs predicted values
                 st.subheader("Actual vs Predicted")
                 r2 = r2_score(y, predictions)
+                mae = mean_absolute_error(y, predictions)
+                rmse = mean_squared_error(y, predictions, squared=False)
                 fig, ax = plt.subplots()
                 ax.scatter(y, predictions, edgecolors=(0, 0, 0))
                 ax.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)
                 ax.set_xlabel("Actual")
                 ax.set_ylabel("Predicted")
-                ax.set_title(f"Actual vs Predicted ({prediction_algorithm})\nR² score: {r2:.2f}")
+                ax.set_title(f"Actual vs Predicted ({prediction_algorithm})\nR² score: {r2:.2f}\nMAE: {mae:.2f}\nRMSE: {rmse:.2f}")
                 st.pyplot(fig)
             else:
                 st.write(f"The target column '{target_column}' is not numeric and cannot be used for regression.")
+
+        # Export cleaned data
+        st.subheader("Export Cleaned Data")
+        csv = data_cleaned.to_csv(index=False).encode('utf-8')
+        st.download_button("Download cleaned data as CSV", data=csv, file_name='cleaned_data.csv', mime='text/csv')
 
 if __name__ == "__main__":
     main()
