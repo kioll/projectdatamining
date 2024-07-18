@@ -14,13 +14,16 @@ Before running the project, ensure you have installed the necessary libraries. Y
 pip install streamlit pandas scikit-learn matplotlib
 ```
 
-Project Structure
+## Project Structure
 The project is divided into four main parts:
 
-Initial Data Exploration
-Data Pre-processing and Cleaning
-Visualization of the Cleaned Data
-Clustering or Prediction
+1. Initial Data Exploration
+
+2. Data Pre-processing and Cleaning
+
+3. Visualization of the Cleaned Data
+
+4. Clustering or Prediction
 
 
 ## Running the Project
@@ -69,9 +72,11 @@ streamlit run app.py
 ## Using the Application
 ## Part I: Initial Data Exploration
 1. **Load Data:** Upload your CSV file through the application interface.
+
 2. **Data Description:** View a preview of the first and last rows of the dataset, as well as a basic statistical summary.
+
 ## Part II: Data Pre-processing and Cleaning
-**Handling Missing Values:** Choose a method to handle missing values from the following options:
+1. **Handling Missing Values:** Choose a method to handle missing values from the following options:
 
  - Delete rows with missing values
  - Delete columns with missing values
@@ -80,7 +85,8 @@ streamlit run app.py
  - Replace with mode
  - KNN Imputation (numeric columns only)
  - Simple Imputation with a constant value
-**Data Normalization:** Choose a method to normalize the data from the following options:
+
+2. **Data Normalization:** Choose a method to normalize the data from the following options:
 
  - Min-Max Normalization
  - Z-score Standardization
@@ -88,6 +94,7 @@ streamlit run app.py
  - Robust Scaler
 ## Part III: Visualization of the Cleaned Data
 **Histograms:** Visualize the distribution of data for each feature in the form of histograms.
+
 **Box Plots:** Visualize the distribution and outliers of each feature using box plots.
 ## Part IV: Clustering or Prediction
 **Clustering:** Implement clustering algorithms:
