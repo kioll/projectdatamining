@@ -61,8 +61,8 @@ myenv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Step 4: Run the Streamlit Application
-Launch the Streamlit application:
+## Step 4: Run the Streamlit Application
+## Launch the Streamlit application:
 
 ```bash
 streamlit run app.py
@@ -93,17 +93,17 @@ streamlit run app.py
  - Quantile Transformation
  - Robust Scaler
 ## Part III: Visualization of the Cleaned Data
-**Histograms:** Visualize the distribution of data for each feature in the form of histograms.
+1. **Histograms:** Visualize the distribution of data for each feature in the form of histograms.
 
-**Box Plots:** Visualize the distribution and outliers of each feature using box plots.
+2. **Box Plots:** Visualize the distribution and outliers of each feature using box plots.
 ## Part IV: Clustering or Prediction
-**Clustering:** Implement clustering algorithms:
+1. **Clustering:** Implement clustering algorithms:
 
  - K-means
  - DBSCAN
  - Choose the desired algorithm and set its parameters.
 
-**Prediction:**  Implement prediction algorithms:
+2. **Prediction:**  Implement prediction algorithms:
 
  - Linear Regression
  - Random Forest Classifier
