@@ -259,7 +259,7 @@ def main():
                 ax.set_title(f"Actual vs Predicted ({prediction_algorithm})\nR² score: {r2:.2f}")
                 st.pyplot(fig)
             else:
-                st.write(f"The target column '{target_column}' is not numeric and cannot be used for regression.")
+                st.write(f"The target columnn '{target_column}' is not numeric and cannot be used for regression.")
 
 if __name__ == "__main__":
     main()
