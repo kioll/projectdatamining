@@ -6,7 +6,9 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler, QuantileTransfor
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+from sklearn.decomposition import PCA
+import io
 
 def main():
     st.title("Data Mining Project")
@@ -26,6 +28,16 @@ def main():
         
         # Chargement des données
         data = pd.read_csv(uploaded_file, delimiter=delimiter)
+        
+        # Définir num_cols après le chargement des données
+        num_cols = data.select_dtypes(include=['number']).columns
+        
+        # Filtrage et sélection des données
+        st.header("Data Filtering and Selection")
+        filter_col = st.selectbox("Select a column to filter", data.columns)
+        filter_value = st.text_input(f"Enter value to filter {filter_col}")
+        if filter_value:
+            data = data[data[filter_col].astype(str).str.contains(filter_value, na=False)]
         
         # Data description
         st.subheader("Data Preview")
@@ -124,6 +136,9 @@ def main():
                 scaler = RobustScaler()
                 data_cleaned[num_cols] = scaler.fit_transform(data_cleaned_numeric)
                 st.write("Applied Robust Scaler to numeric columns.")
+
+            # Redéfinir num_cols après la normalisation
+            num_cols = data_cleaned.select_dtypes(include=['number']).columns
         
         st.write("Data after normalization:")
         st.write(data_cleaned.head())
@@ -172,7 +187,7 @@ def main():
 
             if clustering_algorithm == "K-means":
                 n_clusters = st.slider("Select number of clusters", 2, 10, 3)
-                kmeans = KMeans(n_clusters=n_clusters)
+                kmeans = KMeans(n_clusters=n_clusters, random_state=42)
                 data_cleaned['Cluster'] = kmeans.fit_predict(data_cleaned[num_cols])
                 st.write(f"Applied K-means clustering with the following number of clusters: {n_clusters}")
                 
@@ -181,16 +196,24 @@ def main():
                 data_cleaned.insert(0, 'Cluster', cluster_col)
                 
                 st.write(data_cleaned)
+
+                # Apply PCA
+                pca = PCA(n_components=2)
+                principalComponents = pca.fit_transform(data_cleaned[num_cols])
+                pca_df = pd.DataFrame(data=principalComponents, columns=['PC1', 'PC2'])
+                pca_df['Cluster'] = data_cleaned['Cluster']
                 
                 # Scatter plot of clusters
                 st.subheader("Cluster Scatter Plot")
                 fig, ax = plt.subplots()
-                scatter = ax.scatter(data_cleaned[num_cols[0]], data_cleaned[num_cols[1]], c=data_cleaned['Cluster'], cmap='viridis')
+                scatter = ax.scatter(pca_df['PC1'], pca_df['PC2'], c=pca_df['Cluster'], cmap='viridis')
+                centroids = pca.transform(kmeans.cluster_centers_)
+                ax.scatter(centroids[:, 0], centroids[:, 1], c='red', s=200, alpha=0.75, marker='X')
                 legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
                 ax.add_artist(legend1)
-                ax.set_xlabel(num_cols[0])
-                ax.set_ylabel(num_cols[1])
-                ax.set_title("Cluster Scatter Plot")
+                ax.set_xlabel('Principal Component 1')
+                ax.set_ylabel('Principal Component 2')
+                ax.set_title("Cluster Scatter Plot with Centroids")
                 st.pyplot(fig)
 
             elif clustering_algorithm == "DBSCAN":
@@ -206,15 +229,36 @@ def main():
                 
                 st.write(data_cleaned)
                 
+                # Apply PCA
+                pca = PCA(n_components=2)
+                principalComponents = pca.fit_transform(data_cleaned[num_cols])
+                pca_df = pd.DataFrame(data=principalComponents, columns=['PC1', 'PC2'])
+                pca_df['Cluster'] = data_cleaned['Cluster']
+                
+                # Calculate cluster densities
+                cluster_counts = pca_df['Cluster'].value_counts().sort_index()
+                cluster_densities = cluster_counts / cluster_counts.sum()
+                
+                # Display cluster densities
+                st.write("Cluster densities (proportion of total points):")
+                st.write(cluster_densities)
+                
                 # Scatter plot of clusters
                 st.subheader("Cluster Scatter Plot")
                 fig, ax = plt.subplots()
-                scatter = ax.scatter(data_cleaned[num_cols[0]], data_cleaned[num_cols[1]], c=data_cleaned['Cluster'], cmap='viridis')
+                scatter = ax.scatter(pca_df['PC1'], pca_df['PC2'], c=pca_df['Cluster'], cmap='viridis')
                 legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
                 ax.add_artist(legend1)
-                ax.set_xlabel(num_cols[0])
-                ax.set_ylabel(num_cols[1])
+                ax.set_xlabel('Principal Component 1')
+                ax.set_ylabel('Principal Component 2')
                 ax.set_title("Cluster Scatter Plot")
+                
+                # Annotate density
+                ax.annotate('Density of Clusters:', xy=(1.05, 1.0), xycoords='axes fraction', weight='bold')
+                for i, (cluster, density) in enumerate(cluster_densities.items()):
+                    ax.annotate(f'Cluster {cluster}: {density:.2%}', xy=(1.05, 0.95 - i*0.05), xycoords='axes fraction')
+
+                
                 st.pyplot(fig)
 
         elif task == "Prediction":
@@ -251,15 +295,22 @@ def main():
                 # Scatter plot of actual vs predicted values
                 st.subheader("Actual vs Predicted")
                 r2 = r2_score(y, predictions)
+                mae = mean_absolute_error(y, predictions)
+                rmse = mean_squared_error(y, predictions, squared=False)
                 fig, ax = plt.subplots()
                 ax.scatter(y, predictions, edgecolors=(0, 0, 0))
                 ax.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)
                 ax.set_xlabel("Actual")
                 ax.set_ylabel("Predicted")
-                ax.set_title(f"Actual vs Predicted ({prediction_algorithm})\nR² score: {r2:.2f}")
+                ax.set_title(f"Actual vs Predicted ({prediction_algorithm})\nR² score: {r2:.2f}\nMAE: {mae:.2f}\nRMSE: {rmse:.2f}")
                 st.pyplot(fig)
             else:
                 st.write(f"The target columnn '{target_column}' is not numeric and cannot be used for regression.")
+
+        # Export cleaned data
+        st.subheader("Export Cleaned Data")
+        csv = data_cleaned.to_csv(index=False).encode('utf-8')
+        st.download_button("Download cleaned data as CSV", data=csv, file_name='cleaned_data.csv', mime='text/csv')
 
 if __name__ == "__main__":
     main()
