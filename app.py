@@ -1,46 +1,42 @@
-import streamlit as st
+import numpy as np
 import pandas as pd
+import streamlit as st
 import matplotlib.pyplot as plt
-from sklearn.impute import SimpleImputer, KNNImputer
+from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, QuantileTransformer, RobustScaler
 from sklearn.cluster import KMeans, DBSCAN
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error, silhouette_score
+from sklearn.metrics import (r2_score, mean_absolute_error, mean_squared_error, 
+                             silhouette_score, accuracy_score, f1_score, classification_report)
 from sklearn.decomposition import PCA
-import numpy as np
+from sklearn.model_selection import train_test_split
 import io
 
+# Streamlit App
 def main():
     st.title("Data Mining Project")
     st.subheader("Groupe : Enzo Cuoc, Anna Meliz and Jules Gravier")
 
     st.header("Part I: Initial Data Exploration")
 
-    st.write("The goal of this project is to develop an interactive web application with the help of **Streamlit** to analyze, clean and visualize data.")
+    st.write("The goal of this project is to develop an interactive web application with the help of **Streamlit** to analyze, clean, and visualize data.")
 
     # Data loading
     st.subheader("Load your CSV data")
-    uploaded_file = st.file_uploader("Choose a file", type=["data", "csv"])
+    uploaded_file = st.file_uploader("Choose a file", type=["data","csv"])
     
     if uploaded_file is not None:
-        # Type de séparation (délimiteur)
         delimiter = st.text_input("Enter the delimiter used in your CSV file", value=",")
-        
-        # Chargement des données
         data = pd.read_csv(uploaded_file, delimiter=delimiter)
         
-        # Définir num_cols après le chargement des données
-        num_cols = data.select_dtypes(include=['number']).columns
         
-        # Filtrage et sélection des données
         st.header("Data Filtering and Selection")
         filter_col = st.selectbox("Select a column to filter", data.columns)
         filter_value = st.text_input(f"Enter value to filter {filter_col}")
         if filter_value:
             data = data[data[filter_col].astype(str).str.contains(filter_value, na=False)]
-        
-        # Data description
+
         st.subheader("Data Preview")
         st.write("First 5 rows of the dataset:")
         st.write(data.head())
@@ -48,7 +44,6 @@ def main():
         st.write("Last 5 rows of the dataset:")
         st.write(data.tail())
         
-        # Statistical summary
         st.subheader("Statistical Summary")
         st.write("Number of rows and columns:")
         st.write(data.shape)
@@ -65,8 +60,7 @@ def main():
         # Part II: Data Pre-processing and Cleaning
         st.header("Part II: Data Pre-processing and Cleaning")
         
-        # Handling missing values
-        st.subheader(" 1. Handling Missing Values")
+        st.subheader("Handling Missing Values")
         missing_values_option = st.selectbox(
             "Choose a method to handle missing values",
             ("Delete rows with missing values", "Delete columns with missing values",
@@ -111,7 +105,7 @@ def main():
         st.write(data_cleaned.head())
 
         # Part III: Data Normalization
-        st.subheader(" 2. Choose a method to normalize the data")
+        st.subheader("Choose a method to normalize the data")
         normalization_option = st.selectbox(
             "Normalization method",
             ("None", "Min-Max Normalization", "Z-score Standardization", "Quantile Transformation", "Robust Scaler")
@@ -138,21 +132,15 @@ def main():
                 data_cleaned[num_cols] = scaler.fit_transform(data_cleaned_numeric)
                 st.write("Applied Robust Scaler to numeric columns.")
 
-            # Redéfinir num_cols après la normalisation
-            num_cols = data_cleaned.select_dtypes(include=['number']).columns
-        
         st.write("Data after normalization:")
         st.write(data_cleaned.head())
 
-        # Part III: Data Visualization
-        st.header("Part III: Visualization of the cleaned data")
+        # Part IV: Data Visualization
+        st.header("Visualization of the cleaned data")
         
-        # Choose a column for visualization
         column_to_visualize = st.selectbox("Choose a column to visualize", data_cleaned.columns)
         
-        # Check if the selected column is numeric
         if pd.api.types.is_numeric_dtype(data_cleaned[column_to_visualize]):
-            # Histogram
             st.subheader("Histogram")
             fig, ax = plt.subplots()
             ax.hist(data_cleaned[column_to_visualize].dropna(), bins=30, edgecolor='k')
@@ -161,7 +149,6 @@ def main():
             ax.set_ylabel('Frequency')
             st.pyplot(fig)
             
-            # Box plot
             st.subheader("Box Plot")
             fig, ax = plt.subplots()
             ax.boxplot(data_cleaned[column_to_visualize].dropna())
@@ -172,8 +159,8 @@ def main():
         else:
             st.write(f"The selected column '{column_to_visualize}' is not numeric and cannot be visualized using histograms or box plots.")
 
-        # Part IV: Clustering or Prediction
-        st.header("Part IV: Clustering or Prediction")
+        # Part V: Clustering or Prediction
+        st.header("Clustering or Prediction")
 
         task = st.selectbox("Choose a task", ["Clustering", "Prediction"])
 
@@ -203,155 +190,117 @@ def main():
                 st.write(f"Optimal number of clusters based on silhouette score: {optimal_clusters}")
 
                 n_clusters = st.slider("Select number of clusters", 2, 10, optimal_clusters)
-                kmeans = KMeans(n_clusters=n_clusters)
-                data_cleaned['Cluster'] = kmeans.fit_predict(data_cleaned[num_cols])
-                st.write(f"Applied K-means clustering with the following number of clusters: {n_clusters}")
+                kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+                data_cleaned['KMeans_Cluster'] = kmeans.fit_predict(data_cleaned[num_cols])
                 
-                # Reorder columns to move 'Cluster' to the beginning
-                cluster_col = data_cleaned.pop('Cluster')
-                data_cleaned.insert(0, 'Cluster', cluster_col)
-                
-                st.write(data_cleaned)
+                st.subheader('Cluster Centers')
+                st.write(kmeans.cluster_centers_)
 
                 # Apply PCA
                 pca = PCA(n_components=2)
-                principalComponents = pca.fit_transform(data_cleaned[num_cols])
-                pca_df = pd.DataFrame(data=principalComponents, columns=['PC1', 'PC2'])
-                pca_df['Cluster'] = data_cleaned['Cluster']
+                pca_result = pca.fit_transform(data_cleaned[num_cols])
+                pca_df = pd.DataFrame(data=pca_result, columns=['PC1', 'PC2'])
+                pca_df['Cluster'] = data_cleaned['KMeans_Cluster']
 
-                # Display PCA results
-                st.subheader("PCA Results")
-                st.write(f"Explained Variance Ratio: {pca.explained_variance_ratio_}")
+                # Calculate cluster densities
+                cluster_counts = pca_df['Cluster'].value_counts().sort_index()
+                cluster_densities = cluster_counts / cluster_counts.sum()
 
-                # Display PCA components
-                st.write("Principal Components:")
-                st.write(pd.DataFrame(pca.components_, columns=num_cols, index=['PC1', 'PC2']))
-                
-                # Scatter plot of clusters
-                st.subheader("Cluster Scatter Plot")
+                st.subheader('PCA Visualization of Clusters')
                 fig, ax = plt.subplots()
                 scatter = ax.scatter(pca_df['PC1'], pca_df['PC2'], c=pca_df['Cluster'], cmap='viridis')
                 centroids = pca.transform(kmeans.cluster_centers_)
                 ax.scatter(centroids[:, 0], centroids[:, 1], c='red', s=200, alpha=0.75, marker='X')
+                
+                # Annotate density
+                for i, (cluster, density) in enumerate(cluster_densities.items()):
+                    ax.annotate(f'Cluster {cluster}: {density:.2%}', xy=(1.05, 0.95 - i*0.05), xycoords='axes fraction')
+
                 legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
                 ax.add_artist(legend1)
-                ax.set_xlabel('Principal Component 1')
-                ax.set_ylabel('Principal Component 2')
-                ax.set_title("Cluster Scatter Plot with Centroids")
+                ax.set_title('PCA of K-Means Clusters')
                 st.pyplot(fig)
 
             elif clustering_algorithm == "DBSCAN":
-                eps = st.slider("Select epsilon value", 0.1, 10.0, 0.5)
-                min_samples = st.slider("Select minimum samples", 1, 10, 5)
-                dbscan = DBSCAN(eps=eps, min_samples=min_samples)
-                data_cleaned['Cluster'] = dbscan.fit_predict(data_cleaned[num_cols])
-                st.write(f"Applied DBSCAN clustering with epsilon: {eps} and minimum samples: {min_samples}")
-                
-                # Reorder columns to move 'Cluster' to the beginning
-                cluster_col = data_cleaned.pop('Cluster')
-                data_cleaned.insert(0, 'Cluster', cluster_col)
-                
-                st.write(data_cleaned)
-                
+                st.subheader('DBSCAN Parameters')
+                eps = st.slider("Epsilon (eps)", 0.1, 5.0, 0.5)
+                min_samples = st.slider("Minimum samples", 1, 20, 5)
+
+                dbscan = DBSCAN(eps=eps, min_samples=min_samples).fit(data_cleaned[num_cols])
+                data_cleaned['DBSCAN_Cluster'] = dbscan.labels_
+
+                st.subheader('DBSCAN Clustering Results')
+                st.write(data_cleaned[['DBSCAN_Cluster']].value_counts())
+
                 # Apply PCA
                 pca = PCA(n_components=2)
-                principalComponents = pca.fit_transform(data_cleaned[num_cols])
-                pca_df = pd.DataFrame(data=principalComponents, columns=['PC1', 'PC2'])
-                pca_df['Cluster'] = data_cleaned['Cluster']
+                pca_result = pca.fit_transform(data_cleaned[num_cols])
+                pca_df = pd.DataFrame(data=pca_result, columns=['PC1', 'PC2'])
+                pca_df['Cluster'] = data_cleaned['DBSCAN_Cluster']
 
-                # Display PCA results
-                st.subheader("PCA Results")
-                st.write(f"Explained Variance Ratio: {pca.explained_variance_ratio_}")
-
-                # Display PCA components
-                st.write("Principal Components:")
-                st.write(pd.DataFrame(pca.components_, columns=num_cols, index=['PC1', 'PC2']))
-                
                 # Calculate cluster densities
                 cluster_counts = pca_df['Cluster'].value_counts().sort_index()
                 cluster_densities = cluster_counts / cluster_counts.sum()
-                
-                # Display cluster densities
-                st.write("Cluster densities (proportion of total points):")
-                st.write(cluster_densities)
-                
-                # Scatter plot of clusters
-                st.subheader("Cluster Scatter Plot")
+
+                st.subheader('PCA Visualization of DBSCAN Clusters')
                 fig, ax = plt.subplots()
                 scatter = ax.scatter(pca_df['PC1'], pca_df['PC2'], c=pca_df['Cluster'], cmap='viridis')
-                legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
-                ax.add_artist(legend1)
-                ax.set_xlabel('Principal Component 1')
-                ax.set_ylabel('Principal Component 2')
-                ax.set_title("Cluster Scatter Plot")
-
+                
                 # Annotate density
-                ax.annotate('Density of Clusters:', xy=(1.05, 1.0), xycoords='axes fraction', weight='bold')
                 for i, (cluster, density) in enumerate(cluster_densities.items()):
                     ax.annotate(f'Cluster {cluster}: {density:.2%}', xy=(1.05, 0.95 - i*0.05), xycoords='axes fraction')
+
+                legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
+                ax.add_artist(legend1)
+                ax.set_title('PCA of DBSCAN Clusters')
                 
                 st.pyplot(fig)
-
+                
         elif task == "Prediction":
-            st.subheader("Prediction Algorithms")
-            prediction_algorithm = st.selectbox(
-                "Choose a prediction algorithm",
-                ("Linear Regression", "Random Forest Classifier")
-            )
+            st.subheader("Choose Target Variable")
+            target = st.selectbox("Select the target variable", data_cleaned.columns)
+            features = [col for col in data_cleaned.columns if col != target]
+            X = data_cleaned[features]
+            y = data_cleaned[target]
 
-            target_column = st.selectbox("Choose the target column", data_cleaned.columns)
-            
-            if pd.api.types.is_numeric_dtype(data_cleaned[target_column]):
-                X = data_cleaned[num_cols].drop(columns=[target_column])
-                y = data_cleaned[target_column]
+            # Split the data
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-                if prediction_algorithm == "Linear Regression":
-                    model = LinearRegression()
-                    model.fit(X, y)
-                    st.write("Fitted a Linear Regression model.")
-                    predictions = model.predict(X)
-                elif prediction_algorithm == "Random Forest Classifier":
-                    model = RandomForestClassifier()
-                    model.fit(X, y)
-                    st.write("Fitted a Random Forest Classifier model.")
-                    predictions = model.predict(X)
+            st.subheader("Choose a prediction algorithm")
+            algorithm = st.selectbox("Choose an algorithm", ["Linear Regression", "Random Forest", "Logistic Regression"])
 
-                st.write("Model training completed.")
+            if algorithm == "Linear Regression":
+                model = LinearRegression()
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_test)
+                st.write("Linear Regression Performance:")
+                st.write(f"R² Score: {r2_score(y_test, y_pred)}")
+                st.write(f"Mean Absolute Error: {mean_absolute_error(y_test, y_pred)}")
+                st.write(f"Mean Squared Error: {mean_squared_error(y_test, y_pred)}")
 
-                # Display predictions
-                st.subheader("Predictions")
-                predictions_df = pd.DataFrame({"Actual": y, "Predicted": predictions})
-                st.write(predictions_df.head())
+            elif algorithm == "Random Forest":
+                model = RandomForestClassifier() if y.nunique() <= 2 else RandomForestClassifier()
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_test)
+                if y.nunique() <= 2:
+                    st.write("Random Forest Classification Performance:")
+                    st.write(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
+                    st.write(f"F1 Score: {f1_score(y_test, y_pred)}")
+                else:
+                    st.write("Random Forest Regression Performance:")
+                    st.write(f"R² Score: {r2_score(y_test, y_pred)}")
+                    st.write(f"Mean Absolute Error: {mean_absolute_error(y_test, y_pred)}")
+                    st.write(f"Mean Squared Error: {mean_squared_error(y_test, y_pred)}")
 
-                # Scatter plot of actual vs predicted values
-                st.subheader("Actual vs Predicted")
-                r2 = r2_score(y, predictions)
-                mae = mean_absolute_error(y, predictions)
-                rmse = mean_squared_error(y, predictions, squared=False)
-                fig, ax = plt.subplots()
-                ax.scatter(y, predictions, edgecolors=(0, 0, 0))
-                ax.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)
-                ax.set_xlabel("Actual")
-                ax.set_ylabel("Predicted")
-                ax.set_title(f"Actual vs Predicted ({prediction_algorithm})\nR² score: {r2:.2f}\nMAE: {mae:.2f}\nRMSE: {rmse:.2f}")
-                st.pyplot(fig)
-                # Definitions
-                # Definitions
-                st.subheader("Definitions of Evaluation Metrics")
-                st.markdown("""
-                - **R² (coefficient of determination)**: Measures how well the predicted values match the actual values. It ranges from 0 to 1, with higher values indicating better fit.
-                - **MAE (Mean Absolute Error)**: Represents the average absolute difference between predicted and actual values. Lower values indicate better fit.
-                - **RMSE (Root Mean Squared Error)**: Represents the square root of the average squared difference between predicted and actual values. Lower values indicate better fit.
-                """)
-
-
-            else:
-                st.write(f"The target column '{target_column}' is not numeric and cannot be used for regression.")
-
-        # Export cleaned data
-        st.subheader("Export Cleaned Data")
-        csv = data_cleaned.to_csv(index=False).encode('utf-8')
-        st.download_button("Download cleaned data as CSV", data=csv, file_name='cleaned_data.csv', mime='text/csv')
+            elif algorithm == "Logistic Regression":
+                model = LogisticRegression(max_iter=1000)
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_test)
+                st.write("Logistic Regression Performance:")
+                st.write(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
+                st.write(f"F1 Score: {f1_score(y_test, y_pred)}")
+                st.write("Classification Report:")
+                st.write(classification_report(y_test, y_pred))
 
 if __name__ == "__main__":
     main()
