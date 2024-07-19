@@ -202,6 +202,14 @@ def main():
                 principalComponents = pca.fit_transform(data_cleaned[num_cols])
                 pca_df = pd.DataFrame(data=principalComponents, columns=['PC1', 'PC2'])
                 pca_df['Cluster'] = data_cleaned['Cluster']
+
+                # Display PCA results
+                st.subheader("PCA Results")
+                st.write(f"Explained Variance Ratio: {pca.explained_variance_ratio_}")
+
+                # Display PCA components
+                st.write("Principal Components:")
+                st.write(pd.DataFrame(pca.components_, columns=num_cols, index=['PC1', 'PC2']))
                 
                 # Scatter plot of clusters
                 st.subheader("Cluster Scatter Plot")
@@ -232,6 +240,14 @@ def main():
                 principalComponents = pca.fit_transform(data_cleaned[num_cols])
                 pca_df = pd.DataFrame(data=principalComponents, columns=['PC1', 'PC2'])
                 pca_df['Cluster'] = data_cleaned['Cluster']
+
+                # Display PCA results
+                st.subheader("PCA Results")
+                st.write(f"Explained Variance Ratio: {pca.explained_variance_ratio_}")
+
+                # Display PCA components
+                st.write("Principal Components:")
+                st.write(pd.DataFrame(pca.components_, columns=num_cols, index=['PC1', 'PC2']))
                 
                 # Scatter plot of clusters
                 st.subheader("Cluster Scatter Plot")
