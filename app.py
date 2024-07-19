@@ -7,6 +7,7 @@ from sklearn.cluster import KMeans, DBSCAN
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+from sklearn.decomposition import PCA
 import io
 
 def main():
@@ -196,18 +197,20 @@ def main():
                 
                 st.write(data_cleaned)
 
-                # Select axes for scatter plot
-                x_axis = st.selectbox("Select X-axis for Scatter Plot", num_cols)
-                y_axis = st.selectbox("Select Y-axis for Scatter Plot", num_cols)
+                # Apply PCA
+                pca = PCA(n_components=2)
+                principalComponents = pca.fit_transform(data_cleaned[num_cols])
+                pca_df = pd.DataFrame(data=principalComponents, columns=['PC1', 'PC2'])
+                pca_df['Cluster'] = data_cleaned['Cluster']
                 
                 # Scatter plot of clusters
                 st.subheader("Cluster Scatter Plot")
                 fig, ax = plt.subplots()
-                scatter = ax.scatter(data_cleaned[x_axis], data_cleaned[y_axis], c=data_cleaned['Cluster'], cmap='viridis')
+                scatter = ax.scatter(pca_df['PC1'], pca_df['PC2'], c=pca_df['Cluster'], cmap='viridis')
                 legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
                 ax.add_artist(legend1)
-                ax.set_xlabel(x_axis)
-                ax.set_ylabel(y_axis)
+                ax.set_xlabel('Principal Component 1')
+                ax.set_ylabel('Principal Component 2')
                 ax.set_title("Cluster Scatter Plot")
                 st.pyplot(fig)
 
@@ -224,18 +227,20 @@ def main():
                 
                 st.write(data_cleaned)
                 
-                # Select axes for scatter plot
-                x_axis = st.selectbox("Select X-axis for Scatter Plot", num_cols)
-                y_axis = st.selectbox("Select Y-axis for Scatter Plot", num_cols)
+                # Apply PCA
+                pca = PCA(n_components=2)
+                principalComponents = pca.fit_transform(data_cleaned[num_cols])
+                pca_df = pd.DataFrame(data=principalComponents, columns=['PC1', 'PC2'])
+                pca_df['Cluster'] = data_cleaned['Cluster']
                 
                 # Scatter plot of clusters
                 st.subheader("Cluster Scatter Plot")
                 fig, ax = plt.subplots()
-                scatter = ax.scatter(data_cleaned[x_axis], data_cleaned[y_axis], c=data_cleaned['Cluster'], cmap='viridis')
+                scatter = ax.scatter(pca_df['PC1'], pca_df['PC2'], c=pca_df['Cluster'], cmap='viridis')
                 legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
                 ax.add_artist(legend1)
-                ax.set_xlabel(x_axis)
-                ax.set_ylabel(y_axis)
+                ax.set_xlabel('Principal Component 1')
+                ax.set_ylabel('Principal Component 2')
                 ax.set_title("Cluster Scatter Plot")
                 st.pyplot(fig)
 
