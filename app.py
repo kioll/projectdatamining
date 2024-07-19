@@ -6,8 +6,9 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler, QuantileTransfor
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error, silhouette_score
 from sklearn.decomposition import PCA
+import numpy as np
 import io
 
 def main():
@@ -186,8 +187,23 @@ def main():
             )
 
             if clustering_algorithm == "K-means":
-                n_clusters = st.slider("Select number of clusters", 2, 10, 3)
-                kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+                st.subheader('1.3 Vary the Number of Clusters from 2 to 10 and Measure the Silhouette Index')
+                silhouette_scores = []
+                for k in range(2, 11):
+                    kmeans = KMeans(n_clusters=k, random_state=42).fit(data_cleaned[num_cols])
+                    labels = kmeans.labels_
+                    silhouette_scores.append(silhouette_score(data_cleaned[num_cols], labels))
+                fig, ax = plt.subplots()
+                ax.plot(range(2, 11), silhouette_scores, marker='o')
+                ax.set_title('Silhouette Scores for Different Numbers of Clusters')
+                ax.set_xlabel('Number of clusters')
+                ax.set_ylabel('Silhouette Score')
+                st.pyplot(fig)
+                optimal_clusters = np.argmax(silhouette_scores) + 2
+                st.write(f"Optimal number of clusters based on silhouette score: {optimal_clusters}")
+
+                n_clusters = st.slider("Select number of clusters", 2, 10, optimal_clusters)
+                kmeans = KMeans(n_clusters=n_clusters)
                 data_cleaned['Cluster'] = kmeans.fit_predict(data_cleaned[num_cols])
                 st.write(f"Applied K-means clustering with the following number of clusters: {n_clusters}")
                 
@@ -202,18 +218,24 @@ def main():
                 principalComponents = pca.fit_transform(data_cleaned[num_cols])
                 pca_df = pd.DataFrame(data=principalComponents, columns=['PC1', 'PC2'])
                 pca_df['Cluster'] = data_cleaned['Cluster']
+
+                # Display PCA results
+                st.subheader("PCA Results")
+                st.write(f"Explained Variance Ratio: {pca.explained_variance_ratio_}")
+
+                # Display PCA components
+                st.write("Principal Components:")
+                st.write(pd.DataFrame(pca.components_, columns=num_cols, index=['PC1', 'PC2']))
                 
                 # Scatter plot of clusters
                 st.subheader("Cluster Scatter Plot")
                 fig, ax = plt.subplots()
                 scatter = ax.scatter(pca_df['PC1'], pca_df['PC2'], c=pca_df['Cluster'], cmap='viridis')
-                centroids = pca.transform(kmeans.cluster_centers_)
-                ax.scatter(centroids[:, 0], centroids[:, 1], c='red', s=200, alpha=0.75, marker='X')
                 legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
                 ax.add_artist(legend1)
                 ax.set_xlabel('Principal Component 1')
                 ax.set_ylabel('Principal Component 2')
-                ax.set_title("Cluster Scatter Plot with Centroids")
+                ax.set_title("Cluster Scatter Plot")
                 st.pyplot(fig)
 
             elif clustering_algorithm == "DBSCAN":
@@ -234,14 +256,14 @@ def main():
                 principalComponents = pca.fit_transform(data_cleaned[num_cols])
                 pca_df = pd.DataFrame(data=principalComponents, columns=['PC1', 'PC2'])
                 pca_df['Cluster'] = data_cleaned['Cluster']
-                
-                # Calculate cluster densities
-                cluster_counts = pca_df['Cluster'].value_counts().sort_index()
-                cluster_densities = cluster_counts / cluster_counts.sum()
-                
-                # Display cluster densities
-                st.write("Cluster densities (proportion of total points):")
-                st.write(cluster_densities)
+
+                # Display PCA results
+                st.subheader("PCA Results")
+                st.write(f"Explained Variance Ratio: {pca.explained_variance_ratio_}")
+
+                # Display PCA components
+                st.write("Principal Components:")
+                st.write(pd.DataFrame(pca.components_, columns=num_cols, index=['PC1', 'PC2']))
                 
                 # Scatter plot of clusters
                 st.subheader("Cluster Scatter Plot")
@@ -252,13 +274,6 @@ def main():
                 ax.set_xlabel('Principal Component 1')
                 ax.set_ylabel('Principal Component 2')
                 ax.set_title("Cluster Scatter Plot")
-                
-                # Annotate density
-                ax.annotate('Density of Clusters:', xy=(1.05, 1.0), xycoords='axes fraction', weight='bold')
-                for i, (cluster, density) in enumerate(cluster_densities.items()):
-                    ax.annotate(f'Cluster {cluster}: {density:.2%}', xy=(1.05, 0.95 - i*0.05), xycoords='axes fraction')
-
-                
                 st.pyplot(fig)
 
         elif task == "Prediction":
@@ -305,7 +320,7 @@ def main():
                 ax.set_title(f"Actual vs Predicted ({prediction_algorithm})\nR² score: {r2:.2f}\nMAE: {mae:.2f}\nRMSE: {rmse:.2f}")
                 st.pyplot(fig)
             else:
-                st.write(f"The target columnn '{target_column}' is not numeric and cannot be used for regression.")
+                st.write(f"The target column '{target_column}' is not numeric and cannot be used for regression.")
 
         # Export cleaned data
         st.subheader("Export Cleaned Data")
