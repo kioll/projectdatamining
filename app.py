@@ -187,7 +187,7 @@ def main():
 
             if clustering_algorithm == "K-means":
                 n_clusters = st.slider("Select number of clusters", 2, 10, 3)
-                kmeans = KMeans(n_clusters=n_clusters)
+                kmeans = KMeans(n_clusters=n_clusters, random_state=42)
                 data_cleaned['Cluster'] = kmeans.fit_predict(data_cleaned[num_cols])
                 st.write(f"Applied K-means clustering with the following number of clusters: {n_clusters}")
                 
@@ -207,11 +207,13 @@ def main():
                 st.subheader("Cluster Scatter Plot")
                 fig, ax = plt.subplots()
                 scatter = ax.scatter(pca_df['PC1'], pca_df['PC2'], c=pca_df['Cluster'], cmap='viridis')
+                centroids = pca.transform(kmeans.cluster_centers_)
+                ax.scatter(centroids[:, 0], centroids[:, 1], c='red', s=200, alpha=0.75, marker='X')
                 legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
                 ax.add_artist(legend1)
                 ax.set_xlabel('Principal Component 1')
                 ax.set_ylabel('Principal Component 2')
-                ax.set_title("Cluster Scatter Plot")
+                ax.set_title("Cluster Scatter Plot with Centroids")
                 st.pyplot(fig)
 
             elif clustering_algorithm == "DBSCAN":
@@ -233,6 +235,14 @@ def main():
                 pca_df = pd.DataFrame(data=principalComponents, columns=['PC1', 'PC2'])
                 pca_df['Cluster'] = data_cleaned['Cluster']
                 
+                # Calculate cluster densities
+                cluster_counts = pca_df['Cluster'].value_counts().sort_index()
+                cluster_densities = cluster_counts / cluster_counts.sum()
+                
+                # Display cluster densities
+                st.write("Cluster densities (proportion of total points):")
+                st.write(cluster_densities)
+                
                 # Scatter plot of clusters
                 st.subheader("Cluster Scatter Plot")
                 fig, ax = plt.subplots()
@@ -242,6 +252,13 @@ def main():
                 ax.set_xlabel('Principal Component 1')
                 ax.set_ylabel('Principal Component 2')
                 ax.set_title("Cluster Scatter Plot")
+                
+                # Annotate density
+                ax.annotate('Density of Clusters:', xy=(1.05, 1.0), xycoords='axes fraction', weight='bold')
+                for i, (cluster, density) in enumerate(cluster_densities.items()):
+                    ax.annotate(f'Cluster {cluster}: {density:.2%}', xy=(1.05, 0.95 - i*0.05), xycoords='axes fraction')
+
+                
                 st.pyplot(fig)
 
         elif task == "Prediction":
