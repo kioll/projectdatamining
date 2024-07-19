@@ -1,6 +1,6 @@
+import streamlit as st
 import numpy as np
 import pandas as pd
-import streamlit as st
 import matplotlib.pyplot as plt
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, QuantileTransformer, RobustScaler
@@ -11,9 +11,7 @@ from sklearn.metrics import (r2_score, mean_absolute_error, mean_squared_error,
                              silhouette_score, accuracy_score, f1_score, classification_report)
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
-import io
 
-# Streamlit App
 def main():
     st.title("Data Mining Project")
     st.subheader("Groupe : Enzo Cuoc, Anna Meliz and Jules Gravier")
@@ -29,7 +27,6 @@ def main():
     if uploaded_file is not None:
         delimiter = st.text_input("Enter the delimiter used in your CSV file", value=",")
         data = pd.read_csv(uploaded_file, delimiter=delimiter)
-        
         
         st.header("Data Filtering and Selection")
         filter_col = st.selectbox("Select a column to filter", data.columns)
@@ -158,6 +155,22 @@ def main():
             st.pyplot(fig)
         else:
             st.write(f"The selected column '{column_to_visualize}' is not numeric and cannot be visualized using histograms or box plots.")
+            st.subheader("Feature Importance using Random Forest")
+            X = data_cleaned[num_cols]
+            y = data_cleaned['KMeans_Cluster']
+            rf = RandomForestClassifier(n_estimators=100, random_state=42)
+            rf.fit(X, y)
+            feature_importances = pd.DataFrame(rf.feature_importances_,
+                                                   index = X.columns,
+                                                   columns=['importance']).sort_values('importance', ascending=False)
+            st.write("Feature importances determined by Random Forest:")
+            st.write(feature_importances)
+
+            fig, ax = plt.subplots()
+            feature_importances.plot(kind='bar', ax=ax)
+            ax.set_title("Feature Importances")
+            ax.set_ylabel("Importance")
+            st.pyplot(fig)
 
         # Part V: Clustering or Prediction
         st.header("Clustering or Prediction")
@@ -208,6 +221,23 @@ def main():
                 ax.set_title('PCA of K-Means Clusters')
                 st.pyplot(fig)
 
+                st.subheader("Feature Importance using Random Forest")
+                X = data_cleaned[num_cols]
+                y = data_cleaned['KMeans_Cluster']
+                rf = RandomForestClassifier(n_estimators=100, random_state=42)
+                rf.fit(X, y)
+                feature_importances = pd.DataFrame(rf.feature_importances_,
+                                                   index = X.columns,
+                                                   columns=['importance']).sort_values('importance', ascending=False)
+                st.write("Feature importances determined by Random Forest:")
+                st.write(feature_importances)
+
+                fig, ax = plt.subplots()
+                feature_importances.plot(kind='bar', ax=ax)
+                ax.set_title("Feature Importances")
+                ax.set_ylabel("Importance")
+                st.pyplot(fig)
+
             elif clustering_algorithm == "DBSCAN":
                 st.subheader('DBSCAN Parameters')
                 eps = st.slider("Epsilon (eps)", 0.1, 5.0, 0.5)
@@ -243,8 +273,6 @@ def main():
             st.subheader("Choose a prediction algorithm")
             algorithm = st.selectbox("Choose an algorithm", ["Random Forest", "Logistic Regression"])
 
-            
-
             if algorithm == "Random Forest":
                 model = RandomForestClassifier() if y.nunique() <= 2 else RandomForestClassifier()
                 model.fit(X_train, y_train)
@@ -252,8 +280,12 @@ def main():
                 if y.nunique() <= 2:
                     st.write("Random Forest Classification Performance:")
                     st.write(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
-                   
-                
+                    st.write(classification_report(y_test, y_pred))
+                else:
+                    st.write("Random Forest Regression Performance:")
+                    st.write(f"R2 Score: {r2_score(y_test, y_pred)}")
+                    st.write(f"Mean Absolute Error: {mean_absolute_error(y_test, y_pred)}")
+                    st.write(f"Mean Squared Error: {mean_squared_error(y_test, y_pred)}")
 
             elif algorithm == "Logistic Regression":
                 model = LogisticRegression(max_iter=1000)
@@ -261,7 +293,7 @@ def main():
                 y_pred = model.predict(X_test)
                 st.write("Logistic Regression Performance:")
                 st.write(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
-                
+                st.write(classification_report(y_test, y_pred))
                 
 if __name__ == "__main__":
     main()
