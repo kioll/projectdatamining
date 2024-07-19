@@ -230,7 +230,7 @@ def main():
                                                    index = X.columns,
                                                    columns=['importance']).sort_values('importance', ascending=False)
                 st.write("Feature importances determined by Random Forest:")
-                st.write(feature_importances)
+                
 
                 fig, ax = plt.subplots()
                 feature_importances.plot(kind='bar', ax=ax)
@@ -276,37 +276,52 @@ def main():
         elif task == "Prediction":
             st.subheader("Choose Target Variable")
             target = st.selectbox("Select the target variable", data_cleaned.columns)
-            features = [col for col in data_cleaned.columns if col != target]
-            X = data_cleaned[features]
-            y = data_cleaned[target]
+            
+            st.subheader("Select Features for Prediction")
+            selected_features = st.multiselect("Select features to use for prediction", [col for col in data_cleaned.columns if col != target])
+            
+            if selected_features:
+                X = data_cleaned[selected_features]
+                y = data_cleaned[target]
 
-            # Split the data
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+                # Split the data
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-            st.subheader("Choose a prediction algorithm")
-            algorithm = st.selectbox("Choose an algorithm", ["Random Forest", "Logistic Regression"])
+                st.subheader("Choose a prediction algorithm")
+                algorithm = st.selectbox("Choose an algorithm", ["Random Forest", "Logistic Regression"])
 
-            if algorithm == "Random Forest":
-                model = RandomForestClassifier() if y.nunique() <= 2 else RandomForestClassifier()
-                model.fit(X_train, y_train)
-                y_pred = model.predict(X_test)
-                if y.nunique() <= 2:
-                    st.write("Random Forest Classification Performance:")
+                if algorithm == "Random Forest":
+                    model = RandomForestClassifier()
+                    model.fit(X_train, y_train)
+                    y_pred = model.predict(X_test)
+                    st.write("Random Forest Performance:")
                     st.write(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
-                    st.write(classification_report(y_test, y_pred))
-                else:
-                    st.write("Random Forest Regression Performance:")
-                    st.write(f"R2 Score: {r2_score(y_test, y_pred)}")
-                    st.write(f"Mean Absolute Error: {mean_absolute_error(y_test, y_pred)}")
-                    st.write(f"Mean Squared Error: {mean_squared_error(y_test, y_pred)}")
+                    
+                    st.subheader("Feature Importance for Prediction")
+                    feature_importances = pd.DataFrame(model.feature_importances_,
+                                                    index=selected_features,
+                                                    columns=['importance']).sort_values('importance', ascending=False)
+                    st.write("Feature importances determined by Random Forest:")
+                    st.write(feature_importances)
 
-            elif algorithm == "Logistic Regression":
-                model = LogisticRegression(max_iter=1000)
-                model.fit(X_train, y_train)
-                y_pred = model.predict(X_test)
-                st.write("Logistic Regression Performance:")
-                st.write(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
-                st.write(classification_report(y_test, y_pred))
+                    fig, ax = plt.subplots()
+                    feature_importances.plot(kind='bar', ax=ax)
+                    ax.set_title("Feature Importances")
+                    ax.set_ylabel("Importance")
+                    st.pyplot(fig)
+
+                elif algorithm == "Logistic Regression":
+                    model = LogisticRegression(max_iter=1000)
+                    model.fit(X_train, y_train)
+                    y_pred = model.predict(X_test)
+                    st.write("Logistic Regression Performance:")
+                    st.write(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
+                  
+
+                  
                 
+
+                   
 if __name__ == "__main__":
-    main()
+        main()
+
