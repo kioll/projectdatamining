@@ -327,6 +327,16 @@ def main():
                 ax.set_ylabel("Predicted")
                 ax.set_title(f"Actual vs Predicted ({prediction_algorithm})\nR² score: {r2:.2f}\nMAE: {mae:.2f}\nRMSE: {rmse:.2f}")
                 st.pyplot(fig)
+                # Definitions
+                # Definitions
+                st.subheader("Definitions of Evaluation Metrics")
+                st.markdown("""
+                - **R² (coefficient of determination)**: Measures how well the predicted values match the actual values. It ranges from 0 to 1, with higher values indicating better fit.
+                - **MAE (Mean Absolute Error)**: Represents the average absolute difference between predicted and actual values. Lower values indicate better fit.
+                - **RMSE (Root Mean Squared Error)**: Represents the square root of the average squared difference between predicted and actual values. Lower values indicate better fit.
+                """)
+
+
             else:
                 st.write(f"The target column '{target_column}' is not numeric and cannot be used for regression.")
 
