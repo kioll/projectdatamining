@@ -249,11 +249,24 @@ def main():
                 st.subheader('DBSCAN Clustering Results')
                 st.write(data_cleaned[['DBSCAN_Cluster']].value_counts())
 
-                st.subheader('PCA Visualization of DBSCAN Clusters')
+                # Apply PCA
                 pca = PCA(n_components=2)
                 pca_result = pca.fit_transform(data_cleaned[num_cols])
+                pca_df = pd.DataFrame(data=pca_result, columns=['PC1', 'PC2'])
+                pca_df['Cluster'] = data_cleaned['DBSCAN_Cluster']
+
+                # Calculate cluster densities
+                cluster_counts = pca_df['Cluster'].value_counts().sort_index()
+                cluster_densities = cluster_counts / cluster_counts.sum()
+
+                st.subheader('PCA Visualization of DBSCAN Clusters')
                 fig, ax = plt.subplots()
-                scatter = ax.scatter(pca_result[:, 0], pca_result[:, 1], c=data_cleaned['DBSCAN_Cluster'], cmap='viridis')
+                scatter = ax.scatter(pca_df['PC1'], pca_df['PC2'], c=pca_df['Cluster'], cmap='viridis')
+                
+                # Annotate density
+                for i, (cluster, density) in enumerate(cluster_densities.items()):
+                    ax.annotate(f'Cluster {cluster}: {density:.2%}', xy=(1.05, 0.95 - i*0.05), xycoords='axes fraction')
+
                 legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
                 ax.add_artist(legend1)
                 ax.set_title('PCA of DBSCAN Clusters')
