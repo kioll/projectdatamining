@@ -264,6 +264,17 @@ def main():
                 # Display PCA components
                 st.write("Principal Components:")
                 st.write(pd.DataFrame(pca.components_, columns=num_cols, index=['PC1', 'PC2']))
+<<<<<<< HEAD
+=======
+                
+                # Calculate cluster densities
+                cluster_counts = pca_df['Cluster'].value_counts().sort_index()
+                cluster_densities = cluster_counts / cluster_counts.sum()
+                
+                # Display cluster densities
+                st.write("Cluster densities (proportion of total points):")
+                st.write(cluster_densities)
+>>>>>>> f41abe19c05abdf94fa4d8e88e4f39f37f94605a
                 
                 # Scatter plot of clusters
                 st.subheader("Cluster Scatter Plot")
