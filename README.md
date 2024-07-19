@@ -11,7 +11,7 @@ The goal of this project is to develop an interactive web application using **St
 Before running the project, ensure you have installed the necessary libraries. You can install them using pip:
 
 ```bash
-pip install streamlit pandas scikit-learn matplotlib
+pip install streamlit pandas scikit-learn matplotlib seaborn
 ```
 
 ## Project Structure
