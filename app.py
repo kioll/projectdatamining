@@ -21,7 +21,7 @@ def main():
 
     # Data loading
     st.subheader("Load your CSV data")
-    uploaded_file = st.file_uploader("Choose a file", type=["csv"])
+    uploaded_file = st.file_uploader("Choose a file", type=["data", "csv"])
     
     if uploaded_file is not None:
         # Type de séparation (délimiteur)
@@ -231,11 +231,13 @@ def main():
                 st.subheader("Cluster Scatter Plot")
                 fig, ax = plt.subplots()
                 scatter = ax.scatter(pca_df['PC1'], pca_df['PC2'], c=pca_df['Cluster'], cmap='viridis')
+                centroids = pca.transform(kmeans.cluster_centers_)
+                ax.scatter(centroids[:, 0], centroids[:, 1], c='red', s=200, alpha=0.75, marker='X')
                 legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
                 ax.add_artist(legend1)
                 ax.set_xlabel('Principal Component 1')
                 ax.set_ylabel('Principal Component 2')
-                ax.set_title("Cluster Scatter Plot")
+                ax.set_title("Cluster Scatter Plot with Centroids")
                 st.pyplot(fig)
 
             elif clustering_algorithm == "DBSCAN":
@@ -282,6 +284,12 @@ def main():
                 ax.set_xlabel('Principal Component 1')
                 ax.set_ylabel('Principal Component 2')
                 ax.set_title("Cluster Scatter Plot")
+
+                # Annotate density
+                ax.annotate('Density of Clusters:', xy=(1.05, 1.0), xycoords='axes fraction', weight='bold')
+                for i, (cluster, density) in enumerate(cluster_densities.items()):
+                    ax.annotate(f'Cluster {cluster}: {density:.2%}', xy=(1.05, 0.95 - i*0.05), xycoords='axes fraction')
+                
                 st.pyplot(fig)
 
         elif task == "Prediction":
