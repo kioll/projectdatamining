@@ -193,29 +193,16 @@ def main():
                 kmeans = KMeans(n_clusters=n_clusters, random_state=42)
                 data_cleaned['KMeans_Cluster'] = kmeans.fit_predict(data_cleaned[num_cols])
                 
-                st.subheader('Cluster Centers')
-                st.write(kmeans.cluster_centers_)
-
-                # Apply PCA
-                pca = PCA(n_components=2)
-                pca_result = pca.fit_transform(data_cleaned[num_cols])
-                pca_df = pd.DataFrame(data=pca_result, columns=['PC1', 'PC2'])
-                pca_df['Cluster'] = data_cleaned['KMeans_Cluster']
-
-                # Calculate cluster densities
-                cluster_counts = pca_df['Cluster'].value_counts().sort_index()
-                cluster_densities = cluster_counts / cluster_counts.sum()
+                
 
                 st.subheader('PCA Visualization of Clusters')
+                pca = PCA(n_components=2)
+                pca_result = pca.fit_transform(data_cleaned[num_cols])
                 fig, ax = plt.subplots()
-                scatter = ax.scatter(pca_df['PC1'], pca_df['PC2'], c=pca_df['Cluster'], cmap='viridis')
+                scatter = ax.scatter(pca_result[:, 0], pca_result[:, 1], c=data_cleaned['KMeans_Cluster'], cmap='viridis')
                 centroids = pca.transform(kmeans.cluster_centers_)
                 ax.scatter(centroids[:, 0], centroids[:, 1], c='red', s=200, alpha=0.75, marker='X')
                 
-                # Annotate density
-                for i, (cluster, density) in enumerate(cluster_densities.items()):
-                    ax.annotate(f'Cluster {cluster}: {density:.2%}', xy=(1.05, 0.95 - i*0.05), xycoords='axes fraction')
-
                 legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
                 ax.add_artist(legend1)
                 ax.set_title('PCA of K-Means Clusters')
@@ -232,24 +219,11 @@ def main():
                 st.subheader('DBSCAN Clustering Results')
                 st.write(data_cleaned[['DBSCAN_Cluster']].value_counts())
 
-                # Apply PCA
+                st.subheader('PCA Visualization of DBSCAN Clusters')
                 pca = PCA(n_components=2)
                 pca_result = pca.fit_transform(data_cleaned[num_cols])
-                pca_df = pd.DataFrame(data=pca_result, columns=['PC1', 'PC2'])
-                pca_df['Cluster'] = data_cleaned['DBSCAN_Cluster']
-
-                # Calculate cluster densities
-                cluster_counts = pca_df['Cluster'].value_counts().sort_index()
-                cluster_densities = cluster_counts / cluster_counts.sum()
-
-                st.subheader('PCA Visualization of DBSCAN Clusters')
                 fig, ax = plt.subplots()
-                scatter = ax.scatter(pca_df['PC1'], pca_df['PC2'], c=pca_df['Cluster'], cmap='viridis')
-                
-                # Annotate density
-                for i, (cluster, density) in enumerate(cluster_densities.items()):
-                    ax.annotate(f'Cluster {cluster}: {density:.2%}', xy=(1.05, 0.95 - i*0.05), xycoords='axes fraction')
-
+                scatter = ax.scatter(pca_result[:, 0], pca_result[:, 1], c=data_cleaned['DBSCAN_Cluster'], cmap='viridis')
                 legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
                 ax.add_artist(legend1)
                 ax.set_title('PCA of DBSCAN Clusters')
@@ -269,28 +243,17 @@ def main():
             st.subheader("Choose a prediction algorithm")
             algorithm = st.selectbox("Choose an algorithm", ["Linear Regression", "Random Forest", "Logistic Regression"])
 
-            if algorithm == "Linear Regression":
-                model = LinearRegression()
-                model.fit(X_train, y_train)
-                y_pred = model.predict(X_test)
-                st.write("Linear Regression Performance:")
-                st.write(f"R² Score: {r2_score(y_test, y_pred)}")
-                st.write(f"Mean Absolute Error: {mean_absolute_error(y_test, y_pred)}")
-                st.write(f"Mean Squared Error: {mean_squared_error(y_test, y_pred)}")
+            
 
-            elif algorithm == "Random Forest":
+            if algorithm == "Random Forest":
                 model = RandomForestClassifier() if y.nunique() <= 2 else RandomForestClassifier()
                 model.fit(X_train, y_train)
                 y_pred = model.predict(X_test)
                 if y.nunique() <= 2:
                     st.write("Random Forest Classification Performance:")
                     st.write(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
-                    st.write(f"F1 Score: {f1_score(y_test, y_pred)}")
-                else:
-                    st.write("Random Forest Regression Performance:")
-                    st.write(f"R² Score: {r2_score(y_test, y_pred)}")
-                    st.write(f"Mean Absolute Error: {mean_absolute_error(y_test, y_pred)}")
-                    st.write(f"Mean Squared Error: {mean_squared_error(y_test, y_pred)}")
+                   
+                
 
             elif algorithm == "Logistic Regression":
                 model = LogisticRegression(max_iter=1000)
@@ -298,9 +261,7 @@ def main():
                 y_pred = model.predict(X_test)
                 st.write("Logistic Regression Performance:")
                 st.write(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
-                st.write(f"F1 Score: {f1_score(y_test, y_pred)}")
-                st.write("Classification Report:")
-                st.write(classification_report(y_test, y_pred))
-
+                
+                
 if __name__ == "__main__":
     main()
