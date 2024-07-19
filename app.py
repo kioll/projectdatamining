@@ -241,7 +241,7 @@ def main():
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
             st.subheader("Choose a prediction algorithm")
-            algorithm = st.selectbox("Choose an algorithm", ["Linear Regression", "Random Forest", "Logistic Regression"])
+            algorithm = st.selectbox("Choose an algorithm", ["Random Forest", "Logistic Regression"])
 
             
 
